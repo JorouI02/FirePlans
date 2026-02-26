@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калкулатор — Сили и Средства за Гасене</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #1c2330;
+    --border: #2d3748;
+    --accent: #e05c2a;
+    --accent2: #f08040;
+    --accent-dim: rgba(224,92,42,0.15);
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #6e7681;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --yellow: #d29922;
+    --red: #f85149;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(224,92,42,0.08), transparent),
+      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(255,255,255,0.015) 60px),
+      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(255,255,255,0.015) 60px);
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(13,17,23,0.9);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  header h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px; font-weight: 700; letter-spacing: 0.5px;
+    color: var(--text);
+  }
+  header span { color: var(--accent); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    padding: 24px 32px 0;
+    max-width: 860px; margin: 0 auto;
+  }
+  .progress-steps {
+    display: flex; gap: 0; position: relative;
+  }
+  .progress-steps::before {
+    content: '';
+    position: absolute; top: 16px; left: 0; right: 0; height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+  .progress-bar-fill {
+    position: absolute; top: 16px; left: 0; height: 2px;
+    background: var(--accent);
+    transition: width 0.4s ease;
+    z-index: 1;
+  }
+  .step-dot {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 8px; position: relative; z-index: 2; cursor: pointer;
+  }
+  .step-dot .dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--bg2); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.3s;
+  }
+  .step-dot.active .dot {
+    background: var(--accent); border-color: var(--accent);
+    color: #fff; box-shadow: 0 0 12px rgba(224,92,42,0.5);
+  }
+  .step-dot.done .dot {
+    background: var(--bg2); border-color: var(--green);
+    color: var(--green);
+  }
+  .step-dot.done .dot::after { content: '✓'; }
+  .step-dot span {
+    font-size: 11px; color: var(--text-dim); text-align: center;
+    font-family: 'Rajdhani', sans-serif; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .step-dot.active span { color: var(--accent); }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 860px; margin: 0 auto;
+    padding: 32px 32px 80px;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    margin-top: 28px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+
+  .panel-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--text); margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .panel-title .badge {
+    font-size: 11px; padding: 3px 8px;
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(224,92,42,0.3);
+    border-radius: 20px; font-weight: 600; letter-spacing: 1px;
+  }
+  .panel-sub {
+    color: var(--text-muted); font-size: 13px; margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  /* ── SCENARIO CARDS ── */
+  .scenario-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .scenario-card {
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px; cursor: pointer;
+    transition: all 0.25s;
+    background: var(--bg3);
+    position: relative; overflow: hidden;
+  }
+  .scenario-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent); transform: scaleX(0);
+    transition: transform 0.25s; transform-origin: left;
+  }
+  .scenario-card:hover { border-color: rgba(224,92,42,0.4); transform: translateY(-2px); }
+  .scenario-card:hover::before { transform: scaleX(1); }
+  .scenario-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .scenario-card.selected::before { transform: scaleX(1); }
+  .scenario-icon { font-size: 28px; margin-bottom: 10px; }
+  .scenario-name {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 16px; color: var(--text); margin-bottom: 4px;
+  }
+  .scenario-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .form-grid.single { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.span2 { grid-column: span 2; }
+
+  label {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--text-muted);
+    font-family: 'Rajdhani', sans-serif;
+  }
+  label .unit {
+    font-weight: 400; color: var(--text-dim);
+    text-transform: none; letter-spacing: 0;
+  }
+
+  input[type=number], select, input[type=text] {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 10px 14px;
+    color: var(--text); font-size: 15px;
+    font-family: 'Source Sans 3', sans-serif;
+    transition: border-color 0.2s;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus, select:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(224,92,42,0.12);
+  }
+  select option { background: var(--bg2); }
+
+  .hint {
+    font-size: 11px; color: var(--text-dim);
+    line-height: 1.4; padding: 6px 10px;
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid var(--border);
+    border-radius: 0 4px 4px 0;
+  }
+
+  /* ── DIVIDER ── */
+  .section-divider {
+    grid-column: span 2;
+    border-top: 1px solid var(--border);
+    padding-top: 12px; margin-top: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--text-dim); letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── RESULTS ── */
+  .results-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 24px;
+  }
+  .result-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+    border-top: 3px solid var(--accent);
+    animation: fadeIn 0.4s ease both;
+  }
+  .result-card:nth-child(2) { animation-delay: 0.05s; border-top-color: var(--blue); }
+  .result-card:nth-child(3) { animation-delay: 0.1s; border-top-color: var(--green); }
+  .result-card:nth-child(4) { animation-delay: 0.15s; border-top-color: var(--yellow); }
+  .result-card:nth-child(5) { animation-delay: 0.2s; border-top-color: var(--accent2); }
+  .result-card:nth-child(6) { animation-delay: 0.25s; border-top-color: var(--red); }
+
+  .result-label {
+    font-size: 11px; color: var(--text-dim);
+    font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .result-value {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 28px; color: var(--text); line-height: 1;
+  }
+  .result-unit {
+    font-size: 13px; color: var(--text-muted); margin-top: 2px;
+  }
+
+  /* ── FORMULA BOX ── */
+  .formula-section {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    margin-bottom: 20px;
+  }
+  .formula-title {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 13px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 14px;
+  }
+  .formula-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+    gap: 10px;
+  }
+  .formula-row:last-child { border-bottom: none; }
+  .formula-desc { color: var(--text-muted); font-size: 13px; flex: 1; }
+  .formula-calc {
+    font-family: 'Rajdhani', sans-serif; font-weight: 600;
+    font-size: 14px; color: var(--accent); white-space: nowrap;
+    text-align: right;
+  }
+
+  /* ── ALERT ── */
+  .alert {
+    padding: 12px 16px; border-radius: var(--radius);
+    font-size: 13px; margin-bottom: 18px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .alert-warn {
+    background: rgba(210,153,34,0.1); border: 1px solid rgba(210,153,34,0.3);
+    color: var(--yellow);
+  }
+  .alert-info {
+    background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2);
+    color: var(--blue);
+  }
+
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex; gap: 12px; justify-content: flex-end;
+    margin-top: 28px;
+  }
+  button {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 15px; letter-spacing: 0.5px;
+    padding: 11px 24px; border-radius: var(--radius);
+    cursor: pointer; transition: all 0.2s; border: none;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(224,92,42,0.35); }
+  .btn-secondary {
+    background: transparent; color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--text); }
+  .btn-success {
+    background: var(--green); color: #0d1117;
+  }
+  .btn-success:hover { filter: brightness(1.1); }
+
+  /* ── SUMMARY TABLE ── */
+  .summary-table {
+    width: 100%; border-collapse: collapse; margin-top: 8px;
+  }
+  .summary-table th {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-dim); padding: 8px 12px;
+    border-bottom: 1px solid var(--border); text-align: left;
+  }
+  .summary-table td {
+    padding: 10px 12px; font-size: 14px; color: var(--text);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .summary-table tr:last-child td { border-bottom: none; }
+  .summary-table td.num {
+    font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    color: var(--accent); font-size: 16px;
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: #fff; color: #000; }
+    header, .btn-row, .progress-wrap { display: none; }
+    .panel { background: #fff; border: 1px solid #ccc; }
+    .result-card { background: #f9f9f9; border: 1px solid #ddd; }
+    .result-value { color: #000; }
+    .formula-section { background: #f9f9f9; }
+    .result-label, .result-unit, .formula-desc { color: #555; }
+    .result-card:nth-child(n) { border-top-color: #333; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .scenario-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.span2 { grid-column: span 1; }
+    .results-grid { grid-template-columns: 1fr 1fr; }
+    main { padding: 20px 16px 60px; }
+    header { padding: 14px 16px; }
+    .progress-wrap { padding: 16px 16px 0; }
+    .section-divider { grid-column: span 1; }
+    .formula-row { flex-direction: column; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">🔥</div>
+  <div>
+    <h1>КАЛКУЛАТОР <span>ПОЖАРНИ СИЛИ И СРЕДСТВА</span></h1>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-steps" id="progressSteps">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+    <div class="step-dot active" data-step="0"><div class="dot">1</div><span>Сценарий</span></div>
+    <div class="step-dot" data-step="1"><div class="dot">2</div><span>Входни данни</span></div>
+    <div class="step-dot" data-step="2"><div class="dot">3</div><span>Резултати</span></div>
+  </div>
+</div>
+
+<main id="mainContent"></main>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let currentStep = 0;
+let selectedScenario = null;
+let inputData = {};
+let results = {};
+
+const scenarios = [
+  { id:'fire', icon:'🏢', name:'Обикновен пожар в сграда', desc:'Изчисляване на сили и средства за гасене на пожар в сграда — площ, разход на вода, струйници, екипи, автомобили.' },
+  { id:'tank',  icon:'🛢️', name:'Резервоар с ЛЗТ/ГТ', desc:'Вертикален метален цилиндричен резервоар с лесно или горимо течности — охлаждане и гасене с пяна.' },
+  { id:'powder',icon:'💨', name:'Прахово гасене', desc:'Определяне на сили и средства при гасене с огнегасителни прахови състави — клас В, С пожари.' },
+  { id:'foam',  icon:'🧯', name:'Пяна в помещение', desc:'Гасене с въздушно-механична пяна с ниска/средна/висока кратност в затворени помещения.' },
+];
+
+// ════════════════════════════════════════════════════════════
+// RENDER ENGINE
+// ════════════════════════════════════════════════════════════
+function render() {
+  updateProgress();
+  const main = document.getElementById('mainContent');
+  if (currentStep === 0) main.innerHTML = renderStep0();
+  else if (currentStep === 1) main.innerHTML = renderStep1();
+  else if (currentStep === 2) main.innerHTML = renderStep2();
+  attachEvents();
+}
+
+function updateProgress() {
+  const dots = document.querySelectorAll('.step-dot');
+  const fill = document.getElementById('progressFill');
+  dots.forEach((d,i) => {
+    d.classList.remove('active','done');
+    if(i === currentStep) d.classList.add('active');
+    else if(i < currentStep) d.classList.add('done');
+  });
+  fill.style.width = currentStep === 0 ? '0%' : currentStep === 1 ? '50%' : '100%';
+}
+
+// ────────────────── STEP 0: Избор на сценарий ──────────────
+function renderStep0() {
+  return `<div class="panel">
+    <div class="panel-title">Изберете сценарий <span class="badge">СТЪПКА 1/3</span></div>
+    <div class="panel-sub">Изберете вида на пожара, за да въведете правилните параметри и да получите точните изчисления.</div>
+    <div class="scenario-grid">
+      ${scenarios.map(s => `
+        <div class="scenario-card ${selectedScenario===s.id?'selected':''}" data-id="${s.id}" onclick="selectScenario('${s.id}')">
+          <div class="scenario-icon">${s.icon}</div>
+          <div class="scenario-name">${s.name}</div>
+          <div class="scenario-desc">${s.desc}</div>
+        </div>`).join('')}
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goToStep(1)" ${!selectedScenario?'disabled':''}>Напред →</button>
+    </div>
+  </div>`;
+}
+
+function selectScenario(id) {
+  selectedScenario = id;
+  inputData = {};
+  render();
+}
+
+// ────────────────── STEP 1: Входни данни ──────────────────
+function renderStep1() {
+  const forms = { fire: formFire, tank: formTank, powder: formPowder, foam: formFoam };
+  const s = scenarios.find(x=>x.id===selectedScenario);
+  return `<div class="panel">
+    <div class="panel-title">${s.icon} ${s.name} <span class="badge">СТЪПКА 2/3</span></div>
+    <div class="panel-sub">Попълнете параметрите за обекта. Полетата маркирани с * са задължителни.</div>
+    ${forms[selectedScenario]()}
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToStep(0)">← Назад</button>
+      <button class="btn-primary" onclick="calculate()">Изчисли →</button>
+    </div>
+  </div>`;
+}
+
+// ── Таблица 2: Интензивност по вид сграда/производство ──
+const table2Data = [
+  { cat:'Жилищни и административни сгради', rows:[
+    { name:'I–III ст. на огнеустойчивост', val:'0.10' },
+    { name:'IV ст. на огнеустойчивост', val:'0.10' },
+    { name:'V ст. на огнеустойчивост', val:'0.15' },
+    { name:'Мазета / мансардни помещения', val:'0.15' },
+  ]},
+  { cat:'Животновъдни сгради', rows:[
+    { name:'I–III ст. на огнеустойчивост', val:'0.10' },
+    { name:'IV ст. на огнеустойчивост', val:'0.15' },
+    { name:'V ст. на огнеустойчивост', val:'0.20' },
+  ]},
+  { cat:'Културно-зрелищни (театри, кино)', rows:[
+    { name:'Сцена', val:'0.20' },
+    { name:'Зрителна зала', val:'0.15' },
+    { name:'Други помещения', val:'0.15' },
+  ]},
+  { cat:'Производствени предприятия', rows:[
+    { name:'I–II ст. на огнеустойчивост', val:'0.15' },
+    { name:'III ст. на огнеустойчивост', val:'0.20' },
+    { name:'IV–V ст. на огнеустойчивост', val:'0.25' },
+    { name:'Мазета', val:'0.30' },
+    { name:'Тавански помещения', val:'0.15' },
+    { name:'Бояджийски цехове', val:'0.20' },
+    { name:'Дървообработващи цехове', val:'0.10–0.25' },
+    { name:'Цехове на текстилното производство', val:'0.10–0.15' },
+    { name:'Мелници и елеватори', val:'0.14' },
+  ]},
+  { cat:'Горими покриви (производствени сгради)', rows:[
+    { name:'Гасене от вътре', val:'0.15' },
+    { name:'Гасене от вън (от покрива)', val:'0.08' },
+    { name:'Развил се пожар', val:'0.15' },
+  ]},
+  { cat:'Специални обекти', rows:[
+    { name:'Търговски предприятия / складове', val:'0.20' },
+    { name:'Хладилници', val:'0.10' },
+    { name:'Строящи се сгради', val:'0.10' },
+    { name:'Електростанции — машинни зали', val:'0.20' },
+  ]},
+];
+
+// ── Таблица 3 (извадка): Линейна скорост на изгаряне ──
+const table3Data = [
+  { name:'Хартия разпръсната', vl:'0.6–1.0', In:'—' },
+  { name:'Дървесина (изделия, W 8–10%)', vl:'1.0–1.1', In:'—' },
+  { name:'Дървесина (ракли от дъски)', vl:'3.0–5.6', In:'—' },
+  { name:'Текстилни изделия', vl:'0.6–1.0', In:'—' },
+  { name:'Гумени изделия на открито', vl:'1.0–1.5', In:'—' },
+  { name:'Хартия на рула', vl:'1.2', In:'—' },
+  { name:'Синтетичен каучук', vl:'1.6', In:'—' },
+  { name:'Ленени / конопени влакна', vl:'0.5–0.7', In:'—' },
+  { name:'Пенополиуретан (дунапрен)', vl:'0.75–0.9', In:'—' },
+  { name:'Текстилни предприятия (цехове)', vl:'0.35–0.65', In:'—' },
+  { name:'Дървообработващи (сушилни, гатери)', vl:'2.0–2.5', In:'—' },
+  { name:'Дървообработващи (цехове)', vl:'0.8–1.2', In:'—' },
+  { name:'Складове за дървесина', vl:'1.0–1.5', In:'—' },
+  { name:'Горски насаждения', vl:'0.1–0.25', In:'—' },
+  { name:'Горими прегради и мебели', vl:'0.3–0.4', In:'—' },
+  { name:'Животновъдни ферми (по постелята)', vl:'0.15–0.35', In:'—' },
+  { name:'Кабелни тунели (без напрежение)', vl:'0.5–0.7', In:'—' },
+  { name:'Кабели под напрежение', vl:'30–70', In:'—' },
+];
+
+function formFire() {
+  const t2rows = table2Data.map(cat => `
+    <tr><td colspan="2" style="background:rgba(224,92,42,0.08);color:var(--accent);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.5px;padding:6px 10px;">${cat.cat}</td></tr>
+    ${cat.rows.map(r => `<tr onclick="setIntenzivnost('${r.val}')" style="cursor:pointer">
+      <td style="padding:5px 10px;font-size:13px;color:var(--text)">${r.name}</td>
+      <td style="padding:5px 10px;font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--blue);text-align:right">${r.val}</td>
+    </tr>`).join('')}
+  `).join('');
+
+  const t3rows = table3Data.map(r => `
+    <tr onclick="setVl('${r.vl}')" style="cursor:pointer">
+      <td style="padding:5px 10px;font-size:13px;color:var(--text)">${r.name}</td>
+      <td style="padding:5px 10px;font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--green);text-align:right">${r.vl}</td>
+    </tr>
+  `).join('');
+
+  return `<div class="form-grid">
+    <div class="section-divider">▶ Характеристики на пожара</div>
+    <div class="form-group">
+      <label>Форма на пожара *</label>
+      <select id="fireShape">
+        <option value="round">Кръгова</option>
+        <option value="rect">Правоъгълна</option>
+        <option value="semicircle">Полукръгова</option>
+        <option value="sector">Секторна</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Начало на гасене t<sub>св</sub> <span class="unit">[min]</span></label>
+      <input type="number" id="tsv" value="15" min="1" max="60" step="0.5">
+      <div class="hint">Свободно развитие = разпр. + съобщение + реагиране. Прибл. 10–20 min без ПИИ.</div>
+    </div>
+    <div class="form-group span2">
+      <label>Фронт на атака (начин на атакуване)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+        <div class="front-btn active" id="frontBtn_perimeter" onclick="setFront('perimeter')" style="border:2px solid var(--accent);border-radius:6px;padding:10px 8px;text-align:center;cursor:pointer;background:var(--accent-dim)">
+          <div style="font-size:20px">⭕</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;color:var(--accent);margin-top:4px">По периметъра</div>
+          <div style="font-size:11px;color:var(--text-muted)">атака от всички страни</div>
+        </div>
+        <div class="front-btn" id="frontBtn_front2" onclick="setFront('front2')" style="border:2px solid var(--border);border-radius:6px;padding:10px 8px;text-align:center;cursor:pointer">
+          <div style="font-size:20px">⬅➡</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted);margin-top:4px">2 фронта</div>
+          <div style="font-size:11px;color:var(--text-muted)">атака от 2 страни</div>
+        </div>
+        <div class="front-btn" id="frontBtn_front1" onclick="setFront('front1')" style="border:2px solid var(--border);border-radius:6px;padding:10px 8px;text-align:center;cursor:pointer">
+          <div style="font-size:20px">➡</div>
+          <div style="font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted);margin-top:4px">1 фронт</div>
+          <div style="font-size:11px;color:var(--text-muted)">атака само по фронта</div>
+        </div>
+      </div>
+      <input type="hidden" id="frontAttack" value="perimeter">
+    </div>
+
+    <div class="section-divider span2">▶ Линейна скорост — Таблица 3 <span style="font-weight:400;font-size:11px;color:var(--text-dim)">(кликни ред за автоматично попълване)</span></div>
+    <div class="form-group">
+      <label>Скорост на линейно разпр. v<sub>л</sub> <span class="unit">[m/min]</span></label>
+      <input type="number" id="vl" value="1.5" min="0.1" max="600" step="0.1">
+    </div>
+    <div class="form-group">
+      <label>Дълбочина на гасене h<sub>г</sub> <span class="unit">[m]</span></label>
+      <input type="number" id="hg" value="5" min="1" max="20" step="0.5">
+      <div class="hint">Стандартно: 5 m (ръчни) / 10 m (лафетни)</div>
+    </div>
+    <div class="form-group span2">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:220px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="position:sticky;top:0;background:var(--bg2)">
+            <th style="padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--text-dim);text-align:left;text-transform:uppercase;letter-spacing:0.5px">Горимо вещество / обект</th>
+            <th style="padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--text-dim);text-align:right;text-transform:uppercase;letter-spacing:0.5px">v<sub>л</sub> [m/min]</th>
+          </tr></thead>
+          <tbody>${t3rows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-divider span2">▶ Интензивност — Таблица 2 <span style="font-weight:400;font-size:11px;color:var(--text-dim)">(кликни ред за автоматично попълване)</span></div>
+    <div class="form-group">
+      <label>Необходима интензивност I<sub>н</sub> <span class="unit">[l/s·m²]</span></label>
+      <input type="number" id="intenzivnost" value="0.15" min="0.05" max="0.5" step="0.01">
+    </div>
+    <div class="form-group">
+      <label>Разход на струйник q<sub>стр</sub> <span class="unit">[l/s]</span></label>
+      <select id="qstr">
+        <option value="3.5">Тип "С" — 3.5 l/s</option>
+        <option value="7.0">Тип "В" — 7.0 l/s</option>
+        <option value="20" selected>Лафетен — 20 l/s</option>
+        <option value="40">Лафетен ЛС-40 — 40 l/s</option>
+      </select>
+    </div>
+    <div class="form-group span2">
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;overflow:hidden;max-height:260px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="position:sticky;top:0;background:var(--bg2)">
+            <th style="padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--text-dim);text-align:left;text-transform:uppercase;letter-spacing:0.5px">Вид сграда / помещение</th>
+            <th style="padding:7px 10px;font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--text-dim);text-align:right;text-transform:uppercase;letter-spacing:0.5px">I<sub>н</sub> [l/s·m²]</th>
+          </tr></thead>
+          <tbody>${t2rows}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-divider span2">▶ Параметри за автомобили</div>
+    <div class="form-group">
+      <label>Разход на помпата на ПА Q<sub>ПА</sub> <span class="unit">[l/s]</span></label>
+      <input type="number" id="qpa" value="40" min="10" max="100" step="5">
+    </div>
+  </div>`;
+}
+
+function setIntenzivnost(val) {
+  const num = parseFloat(val.split('–')[0]);
+  if (!isNaN(num)) document.getElementById('intenzivnost').value = num;
+  // highlight
+  document.getElementById('intenzivnost').style.borderColor = 'var(--blue)';
+  setTimeout(() => { const el = document.getElementById('intenzivnost'); if(el) el.style.borderColor = ''; }, 1500);
+}
+
+function setVl(val) {
+  const num = parseFloat(val.split('–')[0]);
+  if (!isNaN(num)) document.getElementById('vl').value = num;
+  document.getElementById('vl').style.borderColor = 'var(--green)';
+  setTimeout(() => { const el = document.getElementById('vl'); if(el) el.style.borderColor = ''; }, 1500);
+}
+
+function setFront(type) {
+  document.getElementById('frontAttack').value = type;
+  ['perimeter','front2','front1'].forEach(t => {
+    const btn = document.getElementById('frontBtn_'+t);
+    if(btn) {
+      btn.style.borderColor = t === type ? 'var(--accent)' : 'var(--border)';
+      btn.style.background = t === type ? 'var(--accent-dim)' : 'transparent';
+      btn.querySelector('div:nth-child(2)').style.color = t === type ? 'var(--accent)' : 'var(--text-muted)';
+    }
+  });
+}
+
+function formTank() {
+  return `<div class="form-grid">
+    <div class="section-divider">▶ Параметри на горящия резервоар</div>
+    <div class="form-group">
+      <label>Диаметър на горящ резервоар D<sub>г</sub> <span class="unit">[m]</span></label>
+      <input type="number" id="dg" value="20" min="1" max="100" step="1">
+    </div>
+    <div class="form-group">
+      <label>Вид горимо вещество</label>
+      <select id="tankProduct">
+        <option value="0.08">ЛЗТ (t кип ≤ 28°С) — I=0.08 l/s·m²</option>
+        <option value="0.05" selected>ГТ (t кип > 28°С) — I=0.05 l/s·m²</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Интензивност охлаждане I<sub>охл</sub><sup>г</sup> <span class="unit">[l/s·m]</span></label>
+      <input type="number" id="iochlg" value="0.8" min="0.1" max="2" step="0.1">
+      <div class="hint">Стойност: 0.8 l/s·m по периметъра на горящ резервоар</div>
+    </div>
+    <div class="form-group">
+      <label>Разход на ПГВ q<sub>пгв</sub> <span class="unit">[l/s]</span></label>
+      <select id="qpgv">
+        <option value="2">СВП — 2 l/s</option>
+        <option value="4">СВП-4 — 4 l/s</option>
+        <option value="8" selected>СВП-8 — 8 l/s</option>
+        <option value="12">ПГВ-40 — 12 l/s</option>
+        <option value="36">ПГВ-120 — 36 l/s</option>
+      </select>
+    </div>
+    <div class="section-divider span2">▶ Съседни резервоари</div>
+    <div class="form-group">
+      <label>Брой съседни резервоари n</label>
+      <input type="number" id="nNeigh" value="2" min="0" max="20" step="1">
+    </div>
+    <div class="form-group">
+      <label>Диаметър на съседен резервоар D<sub>с</sub> <span class="unit">[m]</span></label>
+      <input type="number" id="ds" value="15" min="1" max="100" step="1">
+    </div>
+    <div class="form-group">
+      <label>Разход на струйник q<sub>стр</sub> <span class="unit">[l/s]</span></label>
+      <select id="qstrTank">
+        <option value="3.5">Тип "С" — 3.5 l/s</option>
+        <option value="7.0" selected>Тип "В" — 7.0 l/s</option>
+        <option value="20">Лафетен — 20 l/s</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Разход на помпата Q<sub>ПА</sub> <span class="unit">[l/s]</span></label>
+      <input type="number" id="qpaTank" value="40" min="10" max="100" step="5">
+    </div>
+    <div class="section-divider span2">▶ Пенообразувател</div>
+    <div class="form-group">
+      <label>Концентрация на разтвора C <span class="unit">[%]</span></label>
+      <select id="cPO">
+        <option value="0.06" selected>6%</option>
+        <option value="0.03">3%</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Нормативно време за гасене t<sub>н</sub><sup>г</sup> <span class="unit">[min]</span></label>
+      <input type="number" id="tng" value="15" min="5" max="30" step="1">
+    </div>
+  </div>`;
+}
+
+function formPowder() {
+  return `<div class="form-grid">
+    <div class="section-divider">▶ Параметри на пожара</div>
+    <div class="form-group">
+      <label>Площ на пожара F<sub>п</sub> <span class="unit">[m²]</span></label>
+      <input type="number" id="fpPowder" value="50" min="1" max="5000" step="1">
+    </div>
+    <div class="form-group">
+      <label>Вид горимо вещество</label>
+      <select id="powderFuel">
+        <option value="0.23">Бензин (разлив) — 0.23 kg/s·m²</option>
+        <option value="0.36">Трансформ. масло (разлив) — 0.36 kg/s·m²</option>
+        <option value="0.30">Етилов спирт — 0.30 kg/s·m²</option>
+        <option value="0.25">Керосин — 0.25 kg/s·m²</option>
+        <option value="0.40">Втечнен газ — 0.40 kg/s·m²</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Вид прахов струйник</label>
+      <select id="powderNozzle">
+        <option value="5">Ръчен — 5 kg/s</option>
+        <option value="40" selected>Лафетен — 40 kg/s</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Капацитет прах на ПА W<sub>ПА</sub> <span class="unit">[kg]</span></label>
+      <input type="number" id="wpaPowder" value="500" min="50" max="5000" step="50">
+    </div>
+    <div class="form-group">
+      <label>Нормативно вр. за гасене t<sub>н</sub><sup>г</sup> <span class="unit">[s]</span></label>
+      <input type="number" id="tngPowder" value="30" min="10" max="60" step="5">
+      <div class="hint">Приема се 30 s за повечето горими течности</div>
+    </div>
+    <div class="form-group">
+      <label>Струйници на 1 екип</label>
+      <select id="nozzlesPerTeam">
+        <option value="1" selected>1 бр. лафетен</option>
+        <option value="2">2 бр. лафетни</option>
+        <option value="2r">2 бр. ръчни</option>
+        <option value="4r">4 бр. ръчни</option>
+      </select>
+    </div>
+  </div>`;
+}
+
+function formFoam() {
+  return `<div class="form-grid">
+    <div class="section-divider">▶ Параметри на помещението</div>
+    <div class="form-group">
+      <label>Ширина a <span class="unit">[m]</span></label>
+      <input type="number" id="foamA" value="20" min="1" max="200" step="1">
+    </div>
+    <div class="form-group">
+      <label>Дължина l <span class="unit">[m]</span></label>
+      <input type="number" id="foamL" value="30" min="1" max="200" step="1">
+    </div>
+    <div class="form-group">
+      <label>Височина на горимото натоварване h<sub>п.н.</sub> <span class="unit">[m]</span></label>
+      <input type="number" id="foamHpn" value="0.5" min="0" max="10" step="0.1">
+    </div>
+    <div class="form-group">
+      <label>Необходима дебелина на пенения слой z <span class="unit">[m]</span></label>
+      <input type="number" id="foamZ" value="0.3" min="0.3" max="2" step="0.1">
+      <div class="hint">Минимум 0.3 m</div>
+    </div>
+    <div class="section-divider span2">▶ Параметри на пеногенератора</div>
+    <div class="form-group">
+      <label>Вид пеногенератор (ПГВ)</label>
+      <select id="foamGen">
+        <option value="2,100,12,40,25">ПГВ-40 — 2 l/s разтвор, кратност 100</option>
+        <option value="6,100,36,120,75" selected>ПГВ-120 — 6 l/s разтвор, кратност 100</option>
+        <option value="5.64,8,3,60,50">СВП — 5.64 l/s разтвор, кратност 8</option>
+        <option value="7.52,8,4,80,66">СВП-4 — 7.52 l/s разтвор, кратност 8</option>
+        <option value="15.04,8,8,160,133">СВП-8 — 15.04 l/s разтвор, кратност 8</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Концентрация разтвор C <span class="unit">[%]</span></label>
+      <select id="foamConc">
+        <option value="0.06" selected>6%</option>
+        <option value="0.03">3%</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Разход на помпата Q<sub>ПА</sub> <span class="unit">[l/s]</span></label>
+      <input type="number" id="qpaFoam" value="40" min="10" max="100" step="5">
+    </div>
+    <div class="form-group">
+      <label>Нормативно вр. за гасене t<sub>н</sub><sup>г</sup> <span class="unit">[min]</span></label>
+      <input type="number" id="tngFoam" value="15" min="5" max="30" step="1">
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// CALCULATIONS
+// ════════════════════════════════════════════════════════════
+function calculate() {
+  if (selectedScenario === 'fire') calcFire();
+  else if (selectedScenario === 'tank') calcTank();
+  else if (selectedScenario === 'powder') calcPowder();
+  else if (selectedScenario === 'foam') calcFoam();
+  currentStep = 2;
+  render();
+}
+
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function sv(id) { return document.getElementById(id).value; }
+
+function calcFire() {
+  const tsv = v('tsv'), vl = v('vl'), hg = v('hg');
+  const In = v('intenzivnost'), qstr = v('qstr'), qpa = v('qpa');
+  const shape = sv('fireShape');
+  const front = sv('frontAttack'); // 'perimeter', 'front2', 'front1'
+
+  // ── Радиус на пожара Rп ──
+  const Rp = vl * tsv;
+
+  // ── Площ на пожара Fп (по форма) ──
+  let Fp;
+  if (shape === 'round') {
+    if (tsv <= 10) Fp = Math.PI * Math.pow(vl * tsv, 2);
+    else { const t2 = tsv - 10; Fp = Math.PI * Math.pow(vl*5 + vl*t2, 2); }
+  } else if (shape === 'rect') {
+    // правоъгълна: разпространение в 2 посоки (а = ширина на фронта)
+    // приемаме a = 2*Rp (ширина), дъл. = Rp
+    const a = 2 * Rp; const l = Rp;
+    Fp = a * l;
+  } else if (shape === 'semicircle') {
+    Fp = Math.PI * Rp * Rp / 2;
+  } else { // sector (1/4 кръг)
+    Fp = Math.PI * Rp * Rp / 4;
+  }
+
+  // ── Площ на гасене Fг (зависи от форма И фронт) ──
+  let Fg, frontLabel;
+  if (shape === 'round') {
+    if (front === 'perimeter') {
+      frontLabel = 'По периметъра (кръг)';
+      if (Fp <= Math.PI * hg * hg) Fg = Fp;
+      else Fg = 2 * Math.PI * (Rp - hg) * hg;
+    } else if (front === 'front2') {
+      frontLabel = '2 фронта (кръг)';
+      // 2 противоположни сегмента: n=2, a=2*hg (ширина дъга)
+      if (Fp <= 4 * hg * hg) Fg = Fp;
+      else Fg = 2 * (2 * Rp) * hg - 4 * hg * hg; // Fg = (a-2hг)×hг×n, при n=2
+    } else {
+      frontLabel = '1 фронт (кръг)';
+      if (Fp <= hg * hg) Fg = Fp;
+      else Fg = 2 * Rp * hg - hg * hg; // Fg = (a - hг)×hг
+    }
+  } else if (shape === 'rect') {
+    const a = 2 * Rp;
+    if (front === 'perimeter') {
+      frontLabel = 'По периметъра (правоъгълник)';
+      if (Fp <= 4 * hg * hg) Fg = Fp;
+      else Fg = 2 * (a + Rp) * hg - 4 * hg * hg;
+    } else if (front === 'front2') {
+      frontLabel = '2 фронта (правоъгълник)';
+      if (Fp <= 4 * hg * a) Fg = Fp;
+      else Fg = 2 * a * hg;
+    } else {
+      frontLabel = '1 фронт (правоъгълник)';
+      if (Fp <= a * hg) Fg = Fp;
+      else Fg = a * hg;
+    }
+  } else if (shape === 'semicircle') {
+    frontLabel = front === 'perimeter' ? 'По периметъра (полукръг)' : front === 'front2' ? '2 фронта (полукръг)' : '1 фронт (полукръг)';
+    if (Fp <= Math.PI * hg * hg / 2) Fg = Fp;
+    else Fg = Math.PI * (Rp - hg) * hg;
+  } else { // sector
+    frontLabel = front === 'perimeter' ? 'По периметъра (сектор)' : '1 фронт (сектор)';
+    if (Fp <= Math.PI * hg * hg / 4) Fg = Fp;
+    else Fg = Math.PI * (Rp - hg) * hg / 2;
+  }
+  Fg = Math.min(Fg, Fp);
+  if (Fg < 0) Fg = Fp; // fallback
+
+  // ── Разход за гасене ──
+  const Qng = In * Fg;
+
+  // ── Струйници ──
+  const Nstr = Math.ceil(Qng / qstr);
+
+  // ── Екипи ──
+  const nstrEkip = qstr <= 3.5 ? 4 : qstr <= 7 ? 2 : 1;
+  const Nekipi = Math.ceil(Nstr / nstrEkip);
+
+  // ── Автомобили ──
+  const Npa = Math.ceil(Qng / (0.8 * qpa));
+
+  results = { Fp, Fg, Qng, Nstr, Nekipi, Npa, Rp, hg, tsv, vl, In, qstr, qpa, frontLabel, shape, front };
+  inputData = { tsv, vl, hg, In, qstr, qpa, shape, front };
+}
+
+function calcTank() {
+  const Dg = v('dg'), Ds = v('ds');
+  const Iochlg = v('iochlg');
+  const nNeigh = v('nNeigh');
+  const Ing = parseFloat(sv('tankProduct'));
+  const qpgv = v('qpgv'), qstrT = v('qstrTank');
+  const qpaT = v('qpaTank');
+  const cPO = parseFloat(sv('cPO'));
+  const tng = v('tng');
+
+  // Охлаждане горящ
+  const Qochlg = Iochlg * Math.PI * Dg;
+  const Nstr_ochlg = Math.ceil(Qochlg / qstrT);
+  const Nekipi_ochlg = Math.ceil(Nstr_ochlg / 2);
+
+  // Охлаждане съседни (Iохл_с = 0.2 l/s·m)
+  const Iochls = 0.2;
+  const Qochls = Iochls * Math.PI * Ds / 2 * nNeigh;
+  const Nstr_ochls = Math.ceil(Qochls / qstrT);
+
+  // Гасене с пяна
+  const Fg = Math.PI * Math.pow(Dg / 2, 2);
+  const Qg_pgv = Ing * Fg;
+  const Npgv = Math.ceil(Qg_pgv / qpgv);
+  const nPgvEkip = 2;
+  const Nekipi_g = Math.ceil(Npgv / nPgvEkip);
+
+  // Пенообразувател
+  const Wpo = Qg_pgv * cPO * tng * 60;
+
+  const Qtotal = Qochlg + Qochls + Qg_pgv;
+  const Npa = Math.ceil(Qtotal / (0.8 * qpaT));
+
+  const Nekipi_total = Nekipi_ochlg + Math.ceil(Nstr_ochls/2) + Nekipi_g;
+
+  results = { Dg, Ds, Fg, Qochlg, Nstr_ochlg, Nekipi_ochlg, Qochls, Nstr_ochls,
+              Qg_pgv, Npgv, Nekipi_g, Wpo, Qtotal, Npa, Nekipi_total };
+  inputData = { Dg, Ds, Ing, Iochlg, qpgv, qstrT, qpaT, cPO, tng, nNeigh };
+}
+
+function calcPowder() {
+  const Fp = v('fpPowder');
+  const In = parseFloat(sv('powderFuel'));
+  const qstr = parseFloat(sv('powderNozzle'));
+  const wpa = v('wpaPowder');
+  const tng = v('tngPowder');
+  const npt = sv('nozzlesPerTeam');
+
+  const Qng = In * Fp;
+  const Nstr = Math.ceil(Qng / qstr);
+  let nPerTeam = parseInt(npt) || 1;
+  const Nekipi = Math.ceil(Nstr / nPerTeam);
+  const Wp = Qng * tng;
+  const Npa = Math.ceil(Wp / wpa);
+
+  results = { Fp, In, Qng, Nstr, Nekipi, Wp, Npa, qstr, tng };
+  inputData = { Fp, In, qstr, wpa, tng };
+}
+
+function calcFoam() {
+  const a = v('foamA'), l = v('foamL');
+  const hpn = v('foamHpn'), z = v('foamZ');
+  const qpaF = v('qpaFoam'), tng = v('tngFoam');
+  const conc = parseFloat(sv('foamConc'));
+  const genData = sv('foamGen').split(',').map(Number);
+  const [qRaztvr, kratnost, Qpgv_pyana] = genData;
+
+  const ho = hpn + z;
+  const V = a * l * ho;
+  const Qpgv_needed = V / (tng * 60 * kratnost); // m3/s пяна → l/s разтвор
+  const Qrst = Qpgv_needed * 1000; // l/s разтвор
+  const Npgv = Math.ceil(Qrst / qRaztvr);
+  const Wpo = Qrst * conc * tng * 60;
+  const Npa = Math.ceil(Qrst / (0.8 * qpaF));
+  const NekipiF = Math.ceil(Npgv / 2);
+
+  results = { a, l, ho, V, Qrst, Npgv, Wpo, Npa, NekipiF, kratnost, qRaztvr, tng };
+  inputData = { a, l, hpn, z, qRaztvr, kratnost, conc, qpaF, tng };
+}
+
+// ════════════════════════════════════════════════════════════
+// RESULTS RENDERING
+// ════════════════════════════════════════════════════════════
+function renderStep2() {
+  const s = scenarios.find(x=>x.id===selectedScenario);
+  const renders = { fire: resultsFireHTML, tank: resultsTankHTML, powder: resultsPowderHTML, foam: resultsFoamHTML };
+  return `<div class="panel">
+    <div class="panel-title">${s.icon} Резултати — ${s.name} <span class="badge">СТЪПКА 3/3</span></div>
+    <div class="panel-sub">Изчислени сили и средства по методиката на ГДПБЗН. Всички стойности са закръглени нагоре (∞).</div>
+    ${renders[selectedScenario]()}
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToStep(1)">← Промени данни</button>
+      <button class="btn-secondary" onclick="goToStep(0)">🔄 Нов сценарий</button>
+      <button class="btn-success" onclick="window.print()">🖨️ Отпечатай</button>
+    </div>
+  </div>`;
+}
+
+function resultsFireHTML() {
+  const r = results;
+  const fmtN = (n) => n.toFixed(1);
+  const shapeNames = { round:'Кръгова', rect:'Правоъгълна', semicircle:'Полукръгова', sector:'Секторна' };
+  return `
+    <div class="results-grid">
+      <div class="result-card"><div class="result-label">Радиус на пожара R<sub>п</sub></div><div class="result-value">${fmtN(r.Rp)}</div><div class="result-unit">m</div></div>
+      <div class="result-card"><div class="result-label">Площ на пожара F<sub>п</sub></div><div class="result-value">${fmtN(r.Fp)}</div><div class="result-unit">m²</div></div>
+      <div class="result-card"><div class="result-label">Площ на гасене F<sub>г</sub></div><div class="result-value">${fmtN(r.Fg)}</div><div class="result-unit">m²</div></div>
+      <div class="result-card"><div class="result-label">Необходим разход Q<sub>н</sub><sup>г</sup></div><div class="result-value">${fmtN(r.Qng)}</div><div class="result-unit">l/s</div></div>
+      <div class="result-card"><div class="result-label">Брой струйници N<sub>стр</sub></div><div class="result-value">${r.Nstr}</div><div class="result-unit">бр.</div></div>
+      <div class="result-card"><div class="result-label">Пожарни автомобили N<sub>ПА</sub></div><div class="result-value">${r.Npa}</div><div class="result-unit">бр.</div></div>
+    </div>
+    <div class="formula-section">
+      <div class="formula-title">📐 Ход на изчислението</div>
+      <div class="formula-row"><div class="formula-desc">Форма на пожара / фронт на атака</div><div class="formula-calc">${shapeNames[r.shape]} / ${r.frontLabel}</div></div>
+      <div class="formula-row"><div class="formula-desc">Радиус на пожара R<sub>п</sub> = v<sub>л</sub> × t<sub>св</sub> = ${r.vl} × ${r.tsv}</div><div class="formula-calc"><b>${fmtN(r.Rp)} m</b></div></div>
+      <div class="formula-row"><div class="formula-desc">Площ на пожара F<sub>п</sub></div><div class="formula-calc"><b>${fmtN(r.Fp)} m²</b></div></div>
+      <div class="formula-row"><div class="formula-desc">Площ на гасене F<sub>г</sub> (h<sub>г</sub> = ${r.hg} m, ${r.frontLabel})</div><div class="formula-calc"><b>${fmtN(r.Fg)} m²</b></div></div>
+      <div class="formula-row"><div class="formula-desc">Необходим разход Q<sub>н</sub><sup>г</sup> = I<sub>н</sub> × F<sub>г</sub> = ${r.In} × ${fmtN(r.Fg)}</div><div class="formula-calc"><b>${fmtN(r.Qng)} l/s</b></div></div>
+      <div class="formula-row"><div class="formula-desc">Брой струйници N<sub>стр</sub> = Q<sub>н</sub><sup>г</sup> / q<sub>стр</sub> = ${fmtN(r.Qng)} / ${r.qstr}</div><div class="formula-calc"><b>${r.Nstr} бр.</b></div></div>
+      <div class="formula-row"><div class="formula-desc">Брой ПА = Q<sub>н</sub><sup>г</sup> / (0.8 × Q<sub>ПА</sub>) = ${fmtN(r.Qng)} / (0.8 × ${r.qpa})</div><div class="formula-calc"><b>${r.Npa} бр.</b></div></div>
+    </div>
+    <table class="summary-table">
+      <thead><tr><th>Ресурс</th><th>Количество</th><th>Забележка</th></tr></thead>
+      <tbody>
+        <tr><td>Струйници (q = ${r.qstr} l/s)</td><td class="num">${r.Nstr} бр.</td><td style="color:var(--text-muted)">${r.frontLabel}</td></tr>
+        <tr><td>Екипи</td><td class="num">${r.Nekipi} екип.</td><td style="color:var(--text-muted)">—</td></tr>
+        <tr><td>Пожарни автомобили (Q<sub>ПА</sub> = ${r.qpa} l/s)</td><td class="num">${r.Npa} бр.</td><td style="color:var(--text-muted)">—</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function resultsTankHTML() {
+  const r = results;
+  const fmtN = (n) => n.toFixed(2);
+  return `
+    <div class="results-grid">
+      <div class="result-card"><div class="result-label">Площ на горене F<sub>г</sub></div><div class="result-value">${(r.Fg).toFixed(1)}</div><div class="result-unit">m²</div></div>
+      <div class="result-card"><div class="result-label">Разход охл. горящ Q<sub>охл</sub><sup>г</sup></div><div class="result-value">${fmtN(r.Qochlg)}</div><div class="result-unit">l/s</div></div>
+      <div class="result-card"><div class="result-label">Разход охл. съседни Q<sub>охл</sub><sup>с</sup></div><div class="result-value">${fmtN(r.Qochls)}</div><div class="result-unit">l/s</div></div>
+      <div class="result-card"><div class="result-label">Разход пяна Q<sub>н</sub><sup>г</sup></div><div class="result-value">${fmtN(r.Qg_pgv)}</div><div class="result-unit">l/s</div></div>
+      <div class="result-card"><div class="result-label">Количество пенообр. W<sub>ПО</sub></div><div class="result-value">${(r.Wpo).toFixed(0)}</div><div class="result-unit">l</div></div>
+      <div class="result-card"><div class="result-label">Общ разход Q<sub>total</sub></div><div class="result-value">${fmtN(r.Qtotal)}</div><div class="result-unit">l/s</div></div>
+    </div>
+    <div class="formula-section">
+      <div class="formula-title">📐 Ход на изчислението</div>
+      <div class="formula-row"><div class="formula-desc">Площ на горене F<sub>г</sub> = π×(D/2)² = π×(${r.Dg}/2)²</div><div class="formula-calc">= ${(r.Fg).toFixed(1)} m²</div></div>
+      <div class="formula-row"><div class="formula-desc">Разход охлаждане горящ Q = I<sub>охл</sub>×π×D = ${inputData.Iochlg}×π×${r.Dg}</div><div class="formula-calc">= ${fmtN(r.Qochlg)} l/s</div></div>
+      <div class="formula-row"><div class="formula-desc">Разход охлаждане съседни (I=0.2 l/s·m, D<sub>с</sub>=${r.Ds} m, n=${inputData.nNeigh})</div><div class="formula-calc">= ${fmtN(r.Qochls)} l/s</div></div>
+      <div class="formula-row"><div class="formula-desc">Разход пяна Q = I<sub>н</sub><sup>г</sup> × F<sub>г</sub> = ${inputData.Ing} × ${(r.Fg).toFixed(1)}</div><div class="formula-calc">= ${fmtN(r.Qg_pgv)} l/s</div></div>
+      <div class="formula-row"><div class="formula-desc">Пенообразувател W<sub>ПО</sub> = Q×C×t = ${fmtN(r.Qg_pgv)}×${inputData.cPO}×${inputData.tng*60} s</div><div class="formula-calc">= ${(r.Wpo).toFixed(0)} l</div></div>
+    </div>
+    <table class="summary-table">
+      <thead><tr><th>Ресурс</th><th>Количество</th><th>Забележка</th></tr></thead>
+      <tbody>
+        <tr><td>Струйници охл. (горящ)</td><td class="num">${r.Nstr_ochlg} бр.</td><td style="color:var(--text-muted)">q=${inputData.qstrT} l/s</td></tr>
+        <tr><td>Екипи охл. (горящ)</td><td class="num">${r.Nekipi_ochlg} екип.</td><td style="color:var(--text-muted)">—</td></tr>
+        <tr><td>Струйници охл. (съседни)</td><td class="num">${r.Nstr_ochls} бр.</td><td style="color:var(--text-muted)">q=${inputData.qstrT} l/s</td></tr>
+        <tr><td>Пеногенератори ПГВ</td><td class="num">${r.Npgv} бр.</td><td style="color:var(--text-muted)">q=${inputData.qpgv} l/s</td></tr>
+        <tr><td>Екипи гасене с пяна</td><td class="num">${r.Nekipi_g} екип.</td><td style="color:var(--text-muted)">—</td></tr>
+        <tr><td>Общо екипи</td><td class="num">${r.Nekipi_total} екип.</td><td style="color:var(--text-muted)">—</td></tr>
+        <tr><td>Пожарни автомобили</td><td class="num">${r.Npa} бр.</td><td style="color:var(--text-muted)">Q<sub>ПА</sub>=${inputData.qpaT} l/s</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function resultsPowderHTML() {
+  const r = results;
+  return `
+    <div class="results-grid">
+      <div class="result-card"><div class="result-label">Площ на пожара F<sub>п</sub></div><div class="result-value">${r.Fp}</div><div class="result-unit">m²</div></div>
+      <div class="result-card"><div class="result-label">Разход прах Q<sub>н</sub><sup>г</sup></div><div class="result-value">${r.Qng.toFixed(2)}</div><div class="result-unit">kg/s</div></div>
+      <div class="result-card"><div class="result-label">Необходим прах W<sub>п</sub></div><div class="result-value">${r.Wp.toFixed(1)}</div><div class="result-unit">kg</div></div>
+      <div class="result-card"><div class="result-label">Брой прахови струйници</div><div class="result-value">${r.Nstr}</div><div class="result-unit">бр.</div></div>
+      <div class="result-card"><div class="result-label">Брой екипи</div><div class="result-value">${r.Nekipi}</div><div class="result-unit">екип.</div></div>
+      <div class="result-card"><div class="result-label">Пожарни автомобили</div><div class="result-value">${r.Npa}</div><div class="result-unit">бр.</div></div>
+    </div>
+    <div class="formula-section">
+      <div class="formula-title">📐 Ход на изчислението</div>
+      <div class="formula-row"><div class="formula-desc">Необходим разход прах Q<sub>н</sub><sup>г</sup> = I<sub>н</sub> × F<sub>п</sub> = ${r.In} × ${r.Fp}</div><div class="formula-calc">= ${r.Qng.toFixed(2)} kg/s</div></div>
+      <div class="formula-row"><div class="formula-desc">Брой струйници N = Q / q<sub>стр</sub> = ${r.Qng.toFixed(2)} / ${r.qstr}</div><div class="formula-calc">= ${r.Nstr} бр.</div></div>
+      <div class="formula-row"><div class="formula-desc">Необходимо кол. прах W<sub>п</sub> = Q<sub>н</sub><sup>г</sup> × t<sub>н</sub><sup>г</sup> = ${r.Qng.toFixed(2)} × ${r.tng}</div><div class="formula-calc">= ${r.Wp.toFixed(1)} kg</div></div>
+    </div>
+    <div class="alert alert-warn">⚠️ <span>Горенето в затворен обем изисква по-висока интензивност. За газови фонтани използвайте относителния разход по Таблица 5 от методиката.</span></div>
+    <table class="summary-table">
+      <thead><tr><th>Ресурс</th><th>Количество</th></tr></thead>
+      <tbody>
+        <tr><td>Прахови струйници (${r.qstr} kg/s)</td><td class="num">${r.Nstr} бр.</td></tr>
+        <tr><td>Екипи</td><td class="num">${r.Nekipi} екип.</td></tr>
+        <tr><td>Необходимо количество прах</td><td class="num">${r.Wp.toFixed(1)} kg</td></tr>
+        <tr><td>Пожарни автомобили (прахови)</td><td class="num">${r.Npa} бр.</td></tr>
+      </tbody>
+    </table>`;
+}
+
+function resultsFoamHTML() {
+  const r = results;
+  return `
+    <div class="results-grid">
+      <div class="result-card"><div class="result-label">Обем за запълване V</div><div class="result-value">${r.V.toFixed(1)}</div><div class="result-unit">m³</div></div>
+      <div class="result-card"><div class="result-label">Разход разтвор Q<sub>рст</sub></div><div class="result-value">${r.Qrst.toFixed(2)}</div><div class="result-unit">l/s</div></div>
+      <div class="result-card"><div class="result-label">Пенообразувател W<sub>ПО</sub></div><div class="result-value">${r.Wpo.toFixed(1)}</div><div class="result-unit">l</div></div>
+      <div class="result-card"><div class="result-label">Пеногенератори ПГВ</div><div class="result-value">${r.Npgv}</div><div class="result-unit">бр.</div></div>
+      <div class="result-card"><div class="result-label">Екипи</div><div class="result-value">${r.NekipiF}</div><div class="result-unit">екип.</div></div>
+      <div class="result-card"><div class="result-label">Пожарни автомобили</div><div class="result-value">${r.Npa}</div><div class="result-unit">бр.</div></div>
+    </div>
+    <div class="formula-section">
+      <div class="formula-title">📐 Ход на изчислението</div>
+      <div class="formula-row"><div class="formula-desc">Необходима височина за запълване h<sub>о</sub> = h<sub>п.н.</sub> + z = ${inputData.hpn} + ${inputData.z}</div><div class="formula-calc">= ${r.ho.toFixed(1)} m</div></div>
+      <div class="formula-row"><div class="formula-desc">Обем пяна V = a × l × h<sub>о</sub> = ${r.a} × ${r.l} × ${r.ho.toFixed(1)}</div><div class="formula-calc">= ${r.V.toFixed(1)} m³</div></div>
+      <div class="formula-row"><div class="formula-desc">Разход разтвор Q = V / (t × 60 × кратност) = ${r.V.toFixed(1)} / (${r.tng}×60×${r.kratnost})</div><div class="formula-calc">= ${r.Qrst.toFixed(2)} l/s</div></div>
+      <div class="formula-row"><div class="formula-desc">Брой ПГВ = Q / q<sub>ПГВ</sub> = ${r.Qrst.toFixed(2)} / ${r.qRaztvr}</div><div class="formula-calc">= ${r.Npgv} бр.</div></div>
+      <div class="formula-row"><div class="formula-desc">Пенообразувател W<sub>ПО</sub> = Q × C × t×60</div><div class="formula-calc">= ${r.Wpo.toFixed(1)} l</div></div>
+    </div>
+    <div class="alert alert-info">ℹ️ <span>Времето за запълване е нормативно. Отворите в помещението увеличават необходимото количество пяна. При кратност > 80 се използват ПГВ с висока кратност.</span></div>
+    <table class="summary-table">
+      <thead><tr><th>Ресурс</th><th>Количество</th></tr></thead>
+      <tbody>
+        <tr><td>Пеногенератори ПГВ (${r.qRaztvr} l/s разтвор)</td><td class="num">${r.Npgv} бр.</td></tr>
+        <tr><td>Екипи</td><td class="num">${r.NekipiF} екип.</td></tr>
+        <tr><td>Пенообразувател</td><td class="num">${r.Wpo.toFixed(1)} l</td></tr>
+        <tr><td>Пожарни автомобили</td><td class="num">${r.Npa} бр.</td></tr>
+      </tbody>
+    </table>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+function goToStep(n) {
+  currentStep = n;
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function attachEvents() {}
+
+// INIT
+render();
+</script>
+</body>
+</html>
